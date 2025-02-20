@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<launch>
+  <arg name="voxel_size"       default="0.05"/>
+  <arg name="max_ray_length_m" default="10"/>
+  <param name="use_sim_time"   value="true" />
+
+  <!-- Change sensor frame to match the Husky's camera frame -->
+  <arg name="sensor_frame" default="husky10/stereo_left"/>
+
+  <!-- If you want to play directly from a rosbag from the launch file -->
+  <arg name="play_bag"    default="false"/>
+  <arg name="rosbag_rate" default="1.0"/>
+  <arg name="bag_file"    default="$(find kimera_semantics_ros)/rosbags/h2sl_indoor.bag"/>
+
+  <arg name="metric_semantic_reconstruction" default="true"/>
+  <arg name="semantic_label_2_color_csv_filepath" default="$(find kimera_semantics_ros)/cfg/rss_segmentation_mapping.csv"/>
+
+  <!-- Input -->
+  <arg name="semantic_pointcloud"         default="/husky10/semantic_pointcloud"/>
+  <arg name="left_cam_info_topic"         default="/husky10/stereo_left/camera_info"/>
+  <arg name="right_cam_info_topic"        default="/husky10/stereo_right/camera_info"/>
+  <arg name="left_cam_topic"              default="/husky10/stereo_left/image_rect_color"/>
+  <arg name="right_cam_topic"             default="/husky10/stereo_right/image_rect_color"/>
+  <arg name="left_cam_segmentation_topic" default="/husky10/forward/color/image_raw"/>
+  <arg name="left_cam_depth_topic"        default="/husky10/forward/aligned_depth_to_color/image_raw"/>
+  <arg name="use_freespace_pointcloud"    default="true" />
+  <arg name="freespace_pointcloud"        default="/husky10/lidar_points"/>
+
+  <!-- Generate input pointcloud with semantic labels for kimera-semantics:
+     - 1. Using the depth image and registered semantic image (run_stereo_dense=false).
+     - 2. Using stereo depth reconstruction (run_stereo_dense=true). -->
+  <arg name="run_stereo_dense"     default="true"/>
+  <arg name="publish_point_clouds" default="true"/>
+
+  <arg name="pkg_type"    default="kimera_semantics_ros"  if="$(arg metric_semantic_reconstruction)"/>
+  <arg name="server_type" default="kimera_semantics_node" if="$(arg metric_semantic_reconstruction)"/>
+  <arg name="pkg_type"    default="voxblox_ros" unless="$(arg metric_semantic_reconstruction)"/>
+  <arg name="server_type" default="tsdf_server" unless="$(arg metric_semantic_reconstruction)"/>
+
+  <include file="$(find kimera_semantics_ros)/launch/kimera_semantics.launch" pass_all_args="true"/>
+</launch>
